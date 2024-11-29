@@ -15,15 +15,16 @@ def KMM_simple(de_data, nu_data, K = Gaussian):
     K_de_de = np.zeros((n_de, n_de))
     K_de_nu = np.zeros((n_de, n_nu))
 
-    for i in range(n_de):
-        for j in range(n_de):
-            K_de_de[i, j] = K(de_data[i], de_data[j])
-            
-
-    for i in range(n_de):
-        for j in range(n_nu):
-            K_de_nu[i, j] = K(de_data[i], nu_data[j])
-
+    #for i in range(n_de):
+    #    for j in range(n_de):
+    #        K_de_de[i, j] = K(de_data[i], de_data[j])
+           
+    #for i in range(n_de):
+    #    for j in range(n_nu):
+    #        K_de_nu[i, j] = K(de_data[i], nu_data[j])
+    K_de_de = [[K(de_data[i], de_data[j]) for j in range(n_de)] for i in range(n_de)]
+    K_de_nu = [[K(de_data[i], nu_data[j]) for j in range(n_nu)] for i in range(n_de)]
+    
     one_nu = np.ones(n_nu).reshape(-1, 1)
     scalar = n_de/n_nu
 
@@ -37,7 +38,7 @@ def KMM_simple(de_data, nu_data, K = Gaussian):
 
 
 #def IWCV(parametric_family, dimension_of_parameter, loss_function, x_test, training_set, gamma , lamb):
-def IWCV(parametric_family, loss_function, x_test, training_set, gamma , lamb):
+def IWCV(parametric_family, dim_theta, loss_function, x_test, training_set, gamma , lamb):
     n_tr = len(training_set[0,:])
     x_tr, y_tr = training_set[0, :], training_set[1, :]
     x_te = x_test
@@ -57,7 +58,7 @@ def IWCV(parametric_family, loss_function, x_test, training_set, gamma , lamb):
         reg = lamb * np.linalg.norm(theta)**2
         result = sum/n_tr + reg
         if np.isnan(result): 
-            print(f"got reg = {reg}, sum = {sum}, loss_at_i ={loss_at_i}")
+            print(f"got reg = {reg}, sum = {sum}, loss_at_i = {loss_at_i}")
             raise TypeError(f"Unexpected NaN in get_generalization_error: got reg = {reg}, sum = {sum}, loss_at_i ={loss_at_i}")
         return result
     
@@ -66,8 +67,9 @@ def IWCV(parametric_family, loss_function, x_test, training_set, gamma , lamb):
     
     G_theta = minimize_given_parameters(gamma, lamb)     #depends only on theta
 
-    optim_result = minimize(G_theta, [0])
+    optim_result = minimize(G_theta, np.zeros(dim_theta))
 
     print(optim_result)
     theta_optimal = optim_result.x
-    return theta_optimal
+    f_opti= lambda x: parametric_family(x, theta_optimal)
+    return theta_optimal, f_opti
