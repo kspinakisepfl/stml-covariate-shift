@@ -73,3 +73,36 @@ def IWCV(parametric_family, dim_theta, loss_function, x_test, training_set, gamm
     theta_optimal = optim_result.x
     f_opti= lambda x: parametric_family(x, theta_optimal)
     return theta_optimal, f_opti
+
+
+
+
+
+
+
+def KMM_fixed_design(phi, de_data, nu_data):
+    phi_nu = np.array(np.zeros((1, len(nu_data))))   # 1 x n_nu
+    phi_de = np.array(np.zeros((1, len(de_data))))   # 1 x n_de
+
+    for i in range(len(de_data)):
+        phi_de[:, i] = phi(de_data[i])
+
+    for i in range(len(nu_data)):
+        phi_nu[:, i] = phi(nu_data[i])   
+
+    one_nu = np.array(np.ones((len(nu_data), 1)))  # n_nu x 1
+
+    scalar = len(de_data) / len(nu_data) # 1 x 1
+    
+    reg = 10e-4
+    phi_inv = np.linalg.inv(phi_de.T @ phi_de + reg * np.eye(len(de_data)))  # ( n_de x 1) x (1 x n_de) = n_de x n_de
+    
+    # Compute remaining terms
+    phi_trans_mult = phi_de.T @ phi_nu  # (n_de x 1) x (1 x n_nu) = n_de x n_nu 
+    r_de = scalar * phi_inv @ phi_trans_mult @ one_nu   # (n_de x n_de) x (n_de x n_nu) x (n_nu x 1) = n_de x 1
+    
+    return r_de
+
+
+    
+
