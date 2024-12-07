@@ -37,8 +37,9 @@ def KMM_simple(de_data, nu_data, K = Gaussian):
     return r_de_estim
 
 
-#def IWCV(parametric_family, dimension_of_parameter, loss_function, x_test, training_set, gamma , lamb):
 def IWCV(parametric_family, dim_theta, loss_function, x_test, training_set, gamma , lamb):
+    # implementation of LOO IWCV with density ratio estimation using infinite-order KMM 
+
     n_tr = len(training_set[0,:])
     x_tr, y_tr = training_set[0, :], training_set[1, :]
     x_te = x_test
@@ -67,7 +68,7 @@ def IWCV(parametric_family, dim_theta, loss_function, x_test, training_set, gamm
     
     G_theta = minimize_given_parameters(gamma, lamb)     #depends only on theta
 
-    optim_result = minimize(G_theta, np.zeros(dim_theta))
+    optim_result = minimize(G_theta, np.ones(dim_theta))
 
     print(optim_result)
     theta_optimal = optim_result.x
