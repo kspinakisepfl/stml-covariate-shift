@@ -9,16 +9,14 @@ Default_psi = lambda x, de_sample: [Gaussian(x, i) for i in de_sample]
 
 
 def KMM_inf_approach_w_nonneg(de_data, nu_data, method, K=Gaussian):
-    if method== "L-BFGS-B":
-        reg = 10e-3
-    else:
-        reg = 1
+    
+    reg = 10e-1
     n_de = len(de_data)
     n_nu = len(nu_data)
     
     # Kernel matrices
-    K_de_de = np.array([[K(de_data[i], de_data[j]) for j in range(n_de)] for i in range(n_de)]) * reg
-    K_de_nu = np.array([[K(de_data[i], nu_data[j]) for j in range(n_nu)] for i in range(n_de)]) * reg
+    K_de_de = np.array([[K(de_data[i], de_data[j]) for j in range(n_de)] for i in range(n_de)]) +np.eye(n_de)* reg
+    K_de_nu = np.array([[K(de_data[i], nu_data[j]) for j in range(n_nu)] for i in range(n_de)])
     
     one_nu = np.ones((n_nu, 1))
     
