@@ -37,7 +37,7 @@ def KMM_simple(de_data, nu_data, K = Gaussian):
     return r_de_estim
 
 
-def IWCV(parametric_family, dim_theta, loss_function, x_test, training_set, gamma , lamb):
+def IWERM(parametric_family, dim_theta, loss_function, x_test, training_set, gamma , lamb):
     # implementation of LOO IWCV with density ratio estimation using infinite-order KMM 
 
     n_tr = len(training_set[0,:])
