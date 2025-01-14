@@ -68,7 +68,8 @@ def IWERM(parametric_family, dim_theta, loss_function, x_test, training_set, gam
     
     G_theta = minimize_given_parameters(gamma, lamb)     #depends only on theta
 
-    optim_result = minimize(G_theta, np.ones(dim_theta))
+    #optim_result = minimize(G_theta, np.ones(dim_theta))
+    optim_result = minimize(G_theta, np.zeros(dim_theta))
 
     print(optim_result)
     theta_optimal = optim_result.x
