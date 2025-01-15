@@ -2,6 +2,7 @@ import numpy as np
 import scipy.linalg as sp
 from scipy.optimize import minimize
 import matplotlib.pyplot as plt
+from sklearn.model_selection import KFold
 
 Gaussian = lambda x,y: 1/np.sqrt(2*np.pi)*np.exp(-(x-y)**2/2)
 Default_psi = lambda x, de_sample: [Gaussian(x, i) for i in de_sample]
@@ -74,7 +75,7 @@ def IWERM(parametric_family, dim_theta, loss_function, x_test, training_set, gam
     x_tr, y_tr = training_set[0, :], training_set[1, :]
     x_te = x_test
 
-    r_estim = KMM_simple(x_te, x_tr)
+    r_estim = KMM_inf_approach_w_nonneg(x_te, x_tr)
 
     def get_generalization_error(theta, gamma, lamb):
         sum = 0
@@ -105,3 +106,42 @@ def IWERM(parametric_family, dim_theta, loss_function, x_test, training_set, gam
     theta_optimal = optim_result.x
     f_opti= lambda x: parametric_family(x, theta_optimal)
     return theta_optimal, f_opti
+
+
+def IWCV(parametric_family, dim_theta, loss_function, x_test, training_set, n_folds,gamma):
+    # implementation of k-fold/LOO IWCV with density ratio estimation using infinite-order KMM 
+
+    x_tr, y_tr = training_set[0, :], training_set[1, :]
+    x_te = x_test
+    kf = KFold(n_splits = n_folds)
+
+    r_estim = KMM_simple(x_te, x_tr)
+
+
+    def f_estim(x,y,loss_function):
+
+        def loss(theta,x,y,loss_function):
+            predictions = parametric_family(x, theta)
+            return loss_function(predictions,y)
+        
+        def loss_minim(x,y,loss_function):
+            return lambda theta: loss(theta,x,y,loss_function)
+        
+        loss_minimz = loss_minim(x,y,loss_function)
+
+        optim_result = minimize(loss_minimz, np.zeros(dim_theta))
+        theta_optimal = optim_result.x
+        return theta_optimal
+
+    sum = 0
+
+    #flattened sum
+    for (t_train,t_test) in kf.split(x_tr):
+        abs_Z_i = len(t_test)
+        theta_f_hat = f_estim(x_tr[t_train],y_tr[t_train],loss_function)
+
+        loss_x_ratio_Zi = np.array([np.abs(r_estim[j])**gamma * loss_function(parametric_family(x_tr[j], theta_f_hat), y_tr[j]) for j in t_test])
+        sum += np.sum(loss_x_ratio_Zi)/abs_Z_i
+    
+    G_hat = sum/n_folds
+    return G_hat
